@@ -10,7 +10,7 @@ st.title("Market Share Pie Chart Generator")
 file = st.file_uploader("Upload Excel File", type="xlsx")
 
 # Country input
-country = st.text_input("Enter Country Name").strip().title()
+country = st.text_input("Enter Country Name").strip()
 
 if file and country:
     try:
@@ -18,10 +18,12 @@ if file and country:
         df = pd.read_excel(file)
         df["Country/Territory"].fillna(method="ffill", inplace=True)
 
-        if country not in df["Country/Territory"].values:
+        match = df["Country/Territory"].astype(str).str.strip().str.lower() == country.lower()
+        official_name = df.loc[match, "Country/Territory"].iloc[0]
+        if not match.any():
             st.error(f"'{country}' is not an available country.")
         else:
-            country_df = df[df["Country/Territory"] == country].copy()
+            country_df = df[match].copy()
             country_df = country_df[country_df["Market Share Q4 2024"].notna()]
             country_df["Share"] = country_df["Market Share Q4 2024"].str.rstrip('%').astype(float)
             country_df = country_df.sort_values("Share", ascending=True)
@@ -43,7 +45,8 @@ if file and country:
                 explode=explode,
                 colors=colors,
                 shadow=True,
-                textprops={'fontsize': 12}
+                textprops={'fontsize': 12, 'color': 'black', 
+                          'fontweight': 'bold'}
             )
 
             for i, (wedge, pct) in enumerate(zip(wedges, country_df["Share"])):
@@ -62,7 +65,7 @@ if file and country:
                     )
 
             ax.legend(wedges, country_df["Company"], title="Company", loc="center left", bbox_to_anchor=(1, 0.5))
-            ax.set_title(f"{country}", fontsize=18, weight='bold', color='white')
+            ax.set_title(f"{official_name}", fontsize=18, weight='bold', color='white')
             plt.axis('equal')
             plt.tight_layout()
             st.pyplot(fig)
