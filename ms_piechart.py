@@ -20,6 +20,8 @@ metric_option = st.selectbox("Select Market Share Metric",
 year = st.selectbox("Select Year", ["2020", "2021", "2022", "2023", "2024",
                                     "2025", "2026"])
 quarter = st.selectbox("Select Quarter", ["Q4", "Q3", "Q2", "Q1"])
+bg_color = st.selectbox("Select Background Color", ["Black", "White"])
+
 
 # Map dropdown selection to actual Excel column name
 #column_suffix = f"{quarter} {year}"
@@ -55,14 +57,28 @@ if file and country:
 
             colors = plt.cm.Set3(range(len(country_df)))
             plt.style.use("dark_background")
-            fig, ax = plt.subplots(figsize=(7, 7), facecolor='black')
+            # Set style and color based on background selection
+            if bg_color == "Black":
+                plt.style.use("dark_background")
+                fig_facecolor = 'black'
+                title_color = 'white'
+                in_pie_color = 'black'
+                out_pie_color = 'white'
+                bar_text_color = 'white'
+            else:
+                plt.style.use("default")
+                fig_facecolor = 'white'
+                title_color = 'black'
+                in_pie_color = 'black'
+                out_pie_color = 'black'
+                bar_text_color = 'black'
+            fig, ax = plt.subplots(figsize=(7, 7), facecolor=fig_facecolor)
 
             if chart_type == "Pie Chart":
                 explode = [0.03] * len(country_df)
 
                 def autopct_fn(pct):
                     return f"{pct:.1f}%" if pct >= 3 else ""
-
                 wedges, texts, autotexts = ax.pie(
                     country_df["Share"],
                     autopct=autopct_fn,
@@ -70,7 +86,7 @@ if file and country:
                     explode=explode,
                     colors=colors,
                     shadow=True,
-                    textprops={'fontsize': 12, 'color': 'black', 'fontweight': 'bold'}
+                    textprops={'fontsize': 12, 'color': in_pie_color, 'fontweight': 'bold'}
                 )
 
                 for i, (wedge, pct) in enumerate(zip(wedges, country_df["Share"])):
@@ -83,7 +99,7 @@ if file and country:
                             xy=(x, y),
                             ha='center',
                             va='center',
-                            color='white',
+                            color=out_pie_color,
                             fontsize=10,
                             fontweight='bold'
                         )
@@ -91,12 +107,12 @@ if file and country:
                 ax.legend(wedges, country_df["Company"], title="Company", 
                           loc="center left", bbox_to_anchor=(1, 0.5))
                 ax.set_title(f"{official_name} – {metric_option}({year}{quarter})", fontsize=18,
-                              weight='bold', color='white')
+                              weight='bold', color=title_color)
                 plt.axis('equal')
 
             else:  # Bar chart
                 ax.set_title(f"{official_name} – {metric_option}({year}{quarter})", fontsize=16,
-                              weight='bold', color='white')
+                              weight='bold', color=title_color)
                 bars = ax.bar(country_df["Company"], country_df["Share"], 
                               color=colors, width=0.5)
                 ax.set_ylabel("Market Share (%)", fontsize=12)
@@ -106,7 +122,7 @@ if file and country:
                 for bar in bars:
                     height = bar.get_height()
                     ax.text(bar.get_x() + bar.get_width() / 2, height + 0.5, f"{height:.1f}%", 
-                            ha='center', va='bottom', color='white', fontsize=10)
+                            ha='center', va='bottom', color= bar_text_color, fontsize=10)
             plt.tight_layout()
             st.pyplot(fig)
 
