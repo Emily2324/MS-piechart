@@ -9,13 +9,10 @@ st.set_page_config(page_title="Data Analyzer", layout="wide")
 def run_market_share_app():
   # Set browser tab title and layout
   st.title("Market Share Chart Generator")
-
   # Upload Excel file
   file = st.file_uploader("Upload Excel File", type="xlsx")
-
   # Country input
   country = st.text_input("Enter Country Name").strip()
-
   # Add chart type and metric selection
   chart_type = st.selectbox("Select Chart Type", ["Pie Chart", "Bar Chart"])
   metric_option = st.selectbox("Select Market Share Metric", 
@@ -24,7 +21,6 @@ def run_market_share_app():
                                       "2025", "2026"])
   quarter = st.selectbox("Select Quarter", ["Q4", "Q3", "Q2", "Q1"])
   bg_color = st.selectbox("Select Background Color", ["Black", "White"])
-
 
   # Map dropdown selection to actual Excel column name
   metric_column_map = {
@@ -162,7 +158,7 @@ def run_company_profile_app():
 
     prev_q = get_prev_q(curr_q) if comp_type=="QoQ" else get_prev_y(curr_q)
 
-    # 3) Restrict to your chosen metrics
+    # Restrict to chosen metrics
     desired = [
         "Total subscriptions",
         "4G penetration", "5G penetration",
@@ -238,17 +234,15 @@ def run_company_profile_app():
 
     # Plot
     df_res = pd.DataFrame(results)
-    x = np.arange(len(df_res))
     n = len(df_res)
-    denom = max(n, 4)
-    bar_width = 0.8 / denom
-    gap = bar_width * 0.3
-    offset = bar_width/2 + gap/2
-
+    denom = max(n, 6)
+    bar_width = 0.8 / denom 
+    gap       = bar_width * 0.3
+    offset    = bar_width/2 + gap/2
+    x           = np.arange(n)
     prev_color = 'skyblue'
     curr_color = 'royalblue'
     line_color = 'lightgreen'
-
     fig, ax = plt.subplots(figsize=(8,5))
     # previous quarter bars (light blue)
     ax.bar(
@@ -289,6 +283,7 @@ def run_company_profile_app():
             x,
             df_res["pct_change"],
             marker="o",
+            markersize = 3,
             color=line_color,
             label="% Change"
         )
