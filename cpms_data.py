@@ -235,61 +235,43 @@ def run_company_profile_app():
     # Plot
     df_res = pd.DataFrame(results)
     n = len(df_res)
-    denom = max(n, 6)
-    bar_width = 0.8 / denom 
-    gap       = bar_width * 0.3
-    offset    = bar_width/2 + gap/2
-    x           = np.arange(n)
-    prev_color = 'skyblue'
-    curr_color = 'royalblue'
-    line_color = 'lightgreen'
-    fig, ax = plt.subplots(figsize=(8,5))
-    # previous quarter bars (light blue)
-    ax.bar(
-        x - offset,
-        df_res["prev"],
-        width=bar_width,
-        label=prev_q,
-        color=prev_color
-    )
-    # current quarter bars (dark blue)
-    ax.bar(
-        x + offset,
-        df_res["curr"],
-        width=bar_width,
-        label=curr_q,
-        color=curr_color
-    )
-    if show_grid:
-        ax.grid(
-            True, 
-            axis = 'y',
-            linestyle = '--',
-            linewidth = 0.5,
-            alpha = 0.3
-        )
-    ax.set_xticks(x)
-    ax.set_xticklabels(df_res["company"], rotation=45, ha="right")
-    ax.set_ylabel(metric)
-    ax.legend(loc="upper left")
+    if n == 0:
+        st.info("No data to plot.")
+        return
+    # Configuration
+    total_frac        = 0.8    
+    internal_gap_frac = 0.5    # 30% of each group's slice is the gap
+    per_group_frac = total_frac / n
+    bar_frac_each  = (1 - internal_gap_frac) / 2
+    bar_width = per_group_frac * bar_frac_each
+    gap = bar_width * 0.3
+    offset = bar_width/2 + gap/2
+    margin = (1 - total_frac) / 2
+    centers = margin + per_group_frac * (np.arange(n) + 0.5)
 
+    # Plot
+    fig, ax = plt.subplots(figsize=(8,5))
+    ax.bar(centers - offset, df_res["prev"], width=bar_width, label=prev_q,  color='skyblue')
+    ax.bar(centers + offset, df_res["curr"], width=bar_width, label=curr_q,  color='royalblue')
+    if show_grid:
+        ax.grid(True, axis='y', linestyle='--', linewidth=0.5, alpha=0.3)
+    ax.set_xticks(centers)
+    ax.set_xticklabels(df_res["company"], rotation=45, ha="right")
+    # Percent formatting
     if metric in percent_metrics:
         from matplotlib.ticker import FuncFormatter
         ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:.1f}%"))
-
+    # Optional %‐change line
     if show_line:
         ax2 = ax.twinx()
-        ax2.plot(
-            x,
-            df_res["pct_change"],
-            marker="o",
-            markersize = 3,
-            color=line_color,
-            label="% Change"
-        )
+        ax2.plot(centers, df_res["pct_change"], marker="o", markersize = 3, color='lightgreen', label="% Change")
         ax2.set_ylabel("% Change")
         ax2.legend(loc="upper right")
 
+    # 8) Final touches
+    ax.set_xlim(0, 1)
+    ax.set_ylabel(metric)
+    ax.legend(loc="upper left")
     plt.title(f"{corp_name} — {metric} {curr_q} vs {prev_q}")
     plt.tight_layout()
     st.pyplot(fig)
