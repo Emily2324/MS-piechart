@@ -185,29 +185,31 @@ def run_company_profile_app():
         return
     
     def parse_val(x):
-        if x is None or (isinstance(x, float) and np.isnan(x)):
+        if x is None or (isinstance(x, float) and math.isnan(x)):
             return np.nan
-        # percent metrics → always return percent units (e.g. 3.0 for 3%)
+        # Handle percent metrics
         if metric in percent_metrics:
-            if isinstance(x, str) and "%" in x:
-                return float(x.rstrip("%"))
-            else:
-                return float(x) * 100  # covers numeric 0.03 → 3.0
-        # everything else → plain number
+            if isinstance(x, str) and x.strip().endswith('%'):
+                return float(x.strip().rstrip('%'))
+            return float(x) * 100
+        # Non-percent metrics
         if isinstance(x, str):
-            return float(x.replace(",", ""))
+            return float(x.replace(',', ''))
         return float(x)
     
     # Gather data
     results = []
     def parse_val(x):
-        if x is None or (isinstance(x, float) and np.isnan(x)):
+        if x is None or (isinstance(x, float) and math.isnan(x)):
             return np.nan
+        # Handle percent metrics
+        if metric in percent_metrics:
+            if isinstance(x, str) and x.strip().endswith('%'):
+                return float(x.strip().rstrip('%'))
+            return float(x) * 100
+        # Non-percent metrics
         if isinstance(x, str):
-            x = x.strip()
-            if "%" in x:
-                return float(x.rstrip("%"))
-            return float(x.replace(",", ""))
+            return float(x.replace(',', ''))
         return float(x)
 
     for file in files:
